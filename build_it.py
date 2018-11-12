@@ -29,7 +29,7 @@ exclude_files = ['README.md', '.gitignore', '.python-version', 'requirements.txt
 ext_modules = []
 
 if os.path.isdir(build_dir):
-    print('You have build directroy in your current directory. Please check and remove it first.')
+    print('You have build directory in your current directory. Please check and remove it first.')
     sys.exit(1)
 
 # get all build files
@@ -45,11 +45,14 @@ for path, dirs, files in os.walk(cur_dir, topdown=True):
     for file_name in files:
         file = os.path.join(path, file_name)
         if os.path.splitext(file)[1] == '.py':
-            #  copy __init__.py resolve package cannot be imported
-            if file_name == '__init__.py':
+            if file_name not in exclude_files:
+                #  copy __init__.py resolve package cannot be imported
+                if file_name == '__init__.py':
+                    shutil.copy(file, path.replace(cur_dir, build_dir))
+                if file_name != setup_file:
+                    ext_modules.append(file)
+            else:
                 shutil.copy(file, path.replace(cur_dir, build_dir))
-            if file_name != setup_file:
-                ext_modules.append(file)
         else:
             _exclude = False
             for pattern in exclude_files:
@@ -78,5 +81,10 @@ except Exception as e:
     sys.exit(1)
 else:
     shutil.rmtree(build_tmp_dir)
+    # remove *.c temp files
+    for path, dirs, files in os.walk(cur_dir):
+        for file in files:
+            if file.endswith('.c'):
+                os.unlink(os.path.join(path, file))
     print("\nCompile finished!  cost time: {}s".format(time.time() - start_time))
 
