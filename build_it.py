@@ -23,9 +23,9 @@ setup_file = os.path.split(__file__)[1]
 build_dir = os.path.join(cur_dir, 'build')
 build_tmp_dir = os.path.join(build_dir, "temp")
 # define exclude dirs
-exclude_dirs = ['.git', '__pycache__', 'test', 'logs', 'venv']
+exclude_dirs = ['.git', '__pycache__', 'test', 'logs', 'venv', '.idea']
 # defile exclude files
-exclude_files = ['README.md', '.gitignore', '.python-version', 'requirements.txt', '*.pyc', '*.c']
+exclude_files = ['*.md', '.gitignore', '.python-version', 'requirements.txt', '*.pyc', '*.c']
 ext_modules = []
 
 if os.path.isdir(build_dir):
@@ -35,6 +35,13 @@ if os.path.isdir(build_dir):
 # get all build files
 for path, dirs, files in os.walk(cur_dir, topdown=True):
     dirs[:] = [d for d in dirs if d not in exclude_dirs]
+    # touch a new file when __init__.py not exists
+    for _dir in dirs:
+        init_file = os.path.join(_dir, '__init__.py')
+        if not os.path.isfile(init_file):
+            with open(init_file, 'a') as f:
+                pass
+    # create target folder
     if not os.path.isdir(build_dir):
         os.mkdir(build_dir)
     # make empty dirs
@@ -83,6 +90,7 @@ else:
     shutil.rmtree(build_tmp_dir)
     # remove *.c temp files
     for path, dirs, files in os.walk(cur_dir):
+        dirs[:] = [_dir for _dir in dirs if _dir not in exclude_dirs]
         for file in files:
             if file.endswith('.c'):
                 os.unlink(os.path.join(path, file))
