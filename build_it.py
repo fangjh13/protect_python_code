@@ -37,7 +37,7 @@ for path, dirs, files in os.walk(cur_dir, topdown=True):
     dirs[:] = [d for d in dirs if d not in exclude_dirs]
     # touch a new file when __init__.py not exists
     for _dir in dirs:
-        init_file = os.path.join(_dir, '__init__.py')
+        init_file = os.path.join(path, _dir, '__init__.py')
         if not os.path.isfile(init_file):
             with open(init_file, 'a') as f:
                 pass
