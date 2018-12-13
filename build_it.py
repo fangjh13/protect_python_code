@@ -9,6 +9,9 @@ import shutil
 import time
 import fnmatch
 
+
+SUICIDE = True
+
 try:
     from distutils.core import setup
     from Cython.Build import cythonize
@@ -39,6 +42,7 @@ for path, dirs, files in os.walk(cur_dir, topdown=True):
     for _dir in dirs:
         init_file = os.path.join(path, _dir, '__init__.py')
         if not os.path.isfile(init_file):
+            print('WARNING: create new empty [{}] file.'.format(init_file))
             with open(init_file, 'a') as f:
                 pass
     # create target folder
@@ -94,5 +98,16 @@ else:
         for file in files:
             if file.endswith('.c'):
                 os.unlink(os.path.join(path, file))
+    # suicide mode: delete all file except build folder
+    if SUICIDE:
+        print("\nWARNING: Delete all files except in build folder")
+        for path, dirs, files in os.walk(cur_dir):
+            dirs[:] = [_dir for _dir in dirs if _dir not in [os.path.split(build_dir)[-1]]]
+            for folder in dirs:
+                folder = os.path.join(path, folder)
+                shutil.rmtree(folder)
+            for file in files:
+                os.unlink(os.path.join(path, file))
+
     print("\nCompile finished!  cost time: {}s".format(time.time() - start_time))
 
