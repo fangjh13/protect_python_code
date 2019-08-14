@@ -25,10 +25,14 @@ cur_dir = os.path.abspath(os.path.dirname(__file__))
 setup_file = os.path.split(__file__)[1]
 build_dir = os.path.join(cur_dir, 'build')
 build_tmp_dir = os.path.join(build_dir, "temp")
-# define exclude dirs
-exclude_dirs = ['.git', '__pycache__', 'test', 'logs', 'venv', '.idea']
-# defile exclude files
-exclude_files = ['*.md', '.gitignore', '.python-version', 'requirements.txt', '*.pyc', '*.c']
+# define exclude dirs, these dirs will be deleted
+exclude_dirs = ['.git', '__pycache__', 'test', 'logs', 'venv', 'tests']
+# defile exclude files, these files will be deleted
+exclude_files = ['*.md', '.gitignore', '.python-version', 'requirements.txt', '*.pyc',
+                 '*.c', '*.service', 'Dockerfile', '.dockerignore', 'docker-compose.yml']
+# these `.py` files will be retained and don't compile to `.so`
+ignore_py_files = ['config.py']
+
 ext_modules = []
 
 if os.path.isdir(build_dir):
@@ -56,14 +60,20 @@ for path, dirs, files in os.walk(cur_dir, topdown=True):
     for file_name in files:
         file = os.path.join(path, file_name)
         if os.path.splitext(file)[1] == '.py':
-            if file_name not in exclude_files:
-                #  copy __init__.py resolve package cannot be imported
+            if file_name in ignore_py_files:
+                # don't compile to .so
+                if file_name not in exclude_files:
+                    shutil.copy(file, path.replace(cur_dir, build_dir))
+            elif file_name in exclude_files:
+                # remove it
+                pass
+            else:
+                # add to compile
                 if file_name == '__init__.py':
+                    #  copy __init__.py resolve package cannot be imported
                     shutil.copy(file, path.replace(cur_dir, build_dir))
                 if file_name != setup_file:
                     ext_modules.append(file)
-            else:
-                shutil.copy(file, path.replace(cur_dir, build_dir))
         else:
             _exclude = False
             for pattern in exclude_files:
